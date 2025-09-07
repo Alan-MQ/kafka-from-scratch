@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/google/uuid"
 	"github.com/kafka-from-scratch/internal/protocol"
 )
 
@@ -29,7 +30,12 @@ func NewNetworkProducer(brokerAddress string) *NetworkProducer {
 // 3. 处理连接错误
 func (np *NetworkProducer) Connect() error {
 	// TODO: 实现连接逻辑
-	panic("TODO: 实现Connect方法")
+	conn, err := net.Dial("tcp", np.brokerAddress)
+	if err != nil {
+		return err
+	}
+	np.conn = conn
+	return nil
 }
 
 // TODO: 你来实现这个方法！
@@ -42,7 +48,39 @@ func (np *NetworkProducer) Connect() error {
 // 5. 返回分区ID和offset
 func (np *NetworkProducer) Send(topic string, key, value []byte) (int32, int64, error) {
 	// TODO: 实现消息发送逻辑
-	panic("TODO: 实现Send方法")
+
+	// TopicName    string            `json:"topic_name"`
+	// PartitionKey string            `json:"partition_key"`
+	// Value        string            `json:"value"`
+	// Headers      map[string]string `json:"headers"`
+	// 1. 创建请求数据
+	produceReq := &protocol.ProduceRequest{
+		TopicName:    topic,
+		PartitionKey: string(key),
+		Value:        string(value),
+		Headers:      make(map[string]string),
+	}
+
+	// 2. 包装到通用请求
+	request := &protocol.Request{
+		Type:      protocol.RequestTypeProduce,
+		RequestID: uuid.New().String(),
+		Data:      produceReq,
+	}
+
+	res, err := np.sendRequest(request)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if !res.Success {
+		return 0, 0, fmt.Errorf("produce message failed: %s", res.Error)
+	}
+
+	respData, _ := json.Marshal(res.Data)
+	var produceResp protocol.ProduceResponse
+	json.Unmarshal(respData, &produceResp)
+	return produceResp.PartitionId, produceResp.Offset, nil
 }
 
 // TODO: 你来实现这个方法！
@@ -52,7 +90,30 @@ func (np *NetworkProducer) Send(topic string, key, value []byte) (int32, int64, 
 // 2. 发送请求并处理响应
 func (np *NetworkProducer) CreateTopic(name string, partitions int32) error {
 	// TODO: 实现Topic创建逻辑
-	panic("TODO: 实现CreateTopic方法")
+	sendReq := &protocol.CreateTopicRequest{
+		TopicName:    name,
+		PartitionNum: partitions,
+	}
+
+	request := &protocol.Request{
+		Type:      protocol.RequestTypeCreateTopic,
+		RequestID: uuid.New().String(),
+		Data:      sendReq,
+	}
+
+	res, err := np.sendRequest(request)
+	if err != nil {
+		return err
+	}
+
+	if !res.Success {
+		return fmt.Errorf("create topic err since %s", res.Error)
+	}
+	respData, _ := json.Marshal(res.Data)
+	var createResp protocol.CreateTopicResponse
+	json.Unmarshal(respData, &createResp)
+	fmt.Printf("Result of create topic is %d\n", createResp.Result)
+	return nil
 }
 
 // Close 关闭连接
@@ -68,19 +129,19 @@ func (np *NetworkProducer) sendRequest(req *protocol.Request) (*protocol.Respons
 	if np.conn == nil {
 		return nil, fmt.Errorf("not connected to broker")
 	}
-	
+
 	// 发送请求
 	encoder := json.NewEncoder(np.conn)
 	if err := encoder.Encode(req); err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	
+
 	// 接收响应
 	var response protocol.Response
 	decoder := json.NewDecoder(np.conn)
 	if err := decoder.Decode(&response); err != nil {
 		return nil, fmt.Errorf("failed to receive response: %w", err)
 	}
-	
+
 	return &response, nil
 }
