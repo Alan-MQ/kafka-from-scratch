@@ -26,17 +26,17 @@
 
 ---
 
-### 🔄 阶段1.5: Producer/Consumer接口 (进行中)
+### ✅ 阶段1.5: Producer/Consumer接口 (已完成)
 **时间**: 第1天下午  
 **目标**: 创建统一的Producer/Consumer接口，编写第一个完整示例
 
-**当前任务**:
-- [ ] 创建Producer接口和实现
-- [ ] 创建Consumer接口和实现  
-- [ ] 编写完整的示例程序验证功能
-- [ ] 更新学习日志
+**已完成功能**:
+- [x] 创建Producer接口和实现
+- [x] 创建Consumer接口和实现  
+- [x] 编写完整的示例程序验证功能
+- [x] 更新学习日志
 
-**期望产出**:
+**产出**:
 - `pkg/producer/`: Producer接口和实现
 - `pkg/consumer/`: Consumer接口和实现
 - `examples/basic/`: 第一个完整示例
@@ -44,20 +44,26 @@
 
 ---
 
-### 🌐 阶段2: 网络通信 (第2-3天)
+### ✅ 阶段2: 网络通信 (已完成)
+**时间**: 第2天
 **目标**: 实现Producer和Consumer通过网络与Broker通信
 
-**计划功能**:
-- [ ] 设计简单的通信协议
-- [ ] 实现TCP服务器 (Broker端)
-- [ ] 实现TCP客户端 (Producer/Consumer端)
-- [ ] 网络消息序列化/反序列化
-- [ ] 连接管理和错误处理
+**已完成功能**:
+- [x] 设计简单的通信协议
+- [x] 实现TCP服务器 (Broker端)
+- [x] 实现TCP客户端 (Producer/Consumer端)
+- [x] 网络消息序列化/反序列化
+- [x] 连接管理和错误处理
+- [x] NetworkProducer和NetworkConsumer完整实现
+- [x] 端到端测试验证
 
-**技术挑战**:
-- 协议设计的简洁性
-- 网络异常处理
-- 并发连接管理
+**产出**:
+- `internal/protocol/`: 网络通信协议定义
+- `internal/server/`: TCP服务器实现
+- `pkg/producer/network_producer.go`: 网络版Producer
+- `pkg/consumer/network_consumer.go`: 网络版Consumer
+- `cmd/broker/`: Broker启动器
+- `cmd/test-producer/`, `cmd/test-consumer/`: 测试程序
 
 ---
 
@@ -94,20 +100,31 @@
 
 ---
 
-### 👥 阶段5: Consumer Group机制 (第10-12天) ⭐️
+### 🔄 阶段5: Consumer Group机制 (进行中) ⭐️
+**时间**: 第3天
 **目标**: 实现真正的Consumer Group和Offset管理
 
-**计划功能**:
-- [ ] Consumer Group概念实现
-- [ ] Group Coordinator
-- [ ] Rebalance机制
+**当前进度**:
+- [x] 深度概念设计和文档编写
+- [x] Consumer Group架构设计
+- [x] 协议定义和FAQ文档
+- [ ] Group Coordinator实现
+- [ ] Rebalance机制实现
 - [ ] Offset提交和管理
 - [ ] Consumer心跳机制
+- [ ] 端到端测试验证
 
-**重点解决阶段1遗留问题**:
-- 真正的消费语义
+**重点解决的核心问题**:
+- 真正的消费语义（自动分区分配）
 - 多Consumer Group独立消费
 - Offset管理和故障恢复
+- Generation机制防止脏数据
+- 批量消费和ACK机制
+
+**已完成文档**:
+- `doc/stage5/consumer-group-design.md`: 详细设计文档
+- `doc/stage5/consumer-group-protocol.md`: 协议定义
+- `doc/stage5/consumer-group-faq.md`: 核心概念FAQ
 
 ---
 
@@ -137,6 +154,61 @@
 - [ ] Web管理界面
 - [ ] 日志和调试工具
 - [ ] 配置管理
+
+---
+
+### 🌐 阶段8: 多Broker集群 (第19-21天)
+**目标**: 从单Broker扩展到多Broker集群架构
+
+**计划功能**:
+- [ ] Broker发现和注册机制
+- [ ] 集群成员管理
+- [ ] Topic分区在多Broker间分布
+- [ ] Consumer Group Coordinator选举
+- [ ] 跨Broker的网络通信
+- [ ] 集群元数据管理
+
+**技术挑战**:
+- 分布式系统的一致性
+- 网络分区处理
+- 集群拓扑变化处理
+
+---
+
+### 🔄 阶段9: 副本和容错 (第22-24天) 
+**目标**: 实现数据副本机制和故障容错
+
+**计划功能**:
+- [ ] 分区副本机制
+- [ ] Leader选举算法
+- [ ] 副本同步策略
+- [ ] Broker故障检测和恢复
+- [ ] 数据一致性保证
+- [ ] 脑裂预防机制
+
+**技术要点**:
+- Raft或类似共识算法
+- 副本ISR（In-Sync Replica）管理
+- 故障转移自动化
+
+---
+
+### ⚖️ 阶段10: 分布式协调 (第25-27天)
+**目标**: 完善分布式协调和一致性机制
+
+**计划功能**:
+- [ ] 分布式锁机制
+- [ ] 配置中心集成
+- [ ] 集群状态同步
+- [ ] 分区重平衡优化
+- [ ] 跨数据中心支持
+- [ ] 最终一致性保证
+
+**高级特性**:
+- 多数据中心部署
+- 异地容灾
+- 动态配置更新
+- 集群自动伸缩
 
 ---
 
@@ -177,19 +249,22 @@
 
 ### 已完成 ✅
 - 阶段1: 基础架构实现完成
-- 核心概念理解和文档化
-- 内存版Broker功能验证
+- 阶段1.5: Producer/Consumer接口完成 
+- 阶段2: 网络通信完整实现
+- Consumer Group深度概念设计
 
 ### 正在进行 🔄  
-- 阶段1.5: Producer/Consumer接口创建
+- 阶段5: Consumer Group机制设计完成，准备开始实现
 
 ### 即将开始 📋
-- 第一个完整示例程序
-- 功能测试和问题总结
+- Group Coordinator框架实现
+- Rebalance算法实现
+- Offset管理机制
 
-### 待规划 📝
-- 阶段2: 网络通信设计
-- Consumer Group详细设计
+### 长远规划 📝
+- 阶段3-4: 持久化和分区完善
+- 阶段6-7: 性能优化和监控
+- 阶段8-10: 多Broker集群和分布式特性
 
 ---
 
