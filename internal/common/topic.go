@@ -54,7 +54,7 @@ func (t *Topic) GetPartitionForKey(key []byte) *Partition {
 	count := t.GetPartitionCount()
 	var h maphash.Hash
 	h.WriteString(string(key))
-	return t.Partitions[int32(h.Sum64())%count]
+	return t.Partitions[int64(h.Sum64())%int64(count)]
 }
 
 func (t *Topic) GetPartitionCount() int32 {
