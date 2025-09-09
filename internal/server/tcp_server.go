@@ -9,6 +9,7 @@ import (
 
 	"github.com/kafka-from-scratch/internal/broker"
 	"github.com/kafka-from-scratch/internal/common"
+	"github.com/kafka-from-scratch/internal/coordinator"
 	"github.com/kafka-from-scratch/internal/protocol"
 )
 
@@ -16,6 +17,7 @@ import (
 type TCPServer struct {
 	address string
 	broker  *broker.MemoryBroker
+	groupCoordinator *coordinator.GroupCoordinator  // Consumer Group协调器
 
 	listener net.Listener
 	clients  map[string]net.Conn
@@ -27,6 +29,7 @@ func NewTCPServer(address string, broker *broker.MemoryBroker) *TCPServer {
 	return &TCPServer{
 		address: address,
 		broker:  broker,
+		groupCoordinator: coordinator.NewGroupCoordinator(broker),
 		clients: make(map[string]net.Conn),
 	}
 }
@@ -113,6 +116,21 @@ func (s *TCPServer) handleRequest(request *protocol.Request) *protocol.Response 
 		return s.handleSubscribe(request)
 	case protocol.RequestTypeSeek:
 		return s.handleSeek(request)
+	
+	// Consumer Group 协议处理
+	case protocol.RequestTypeJoinGroup:
+		return s.handleJoinGroup(request)
+	case protocol.RequestTypeLeaveGroup:
+		return s.handleLeaveGroup(request)
+	case protocol.RequestTypeSyncGroup:
+		return s.handleSyncGroup(request)
+	case protocol.RequestTypeHeartbeat:
+		return s.handleHeartbeat(request)
+	case protocol.RequestTypeCommitOffset:
+		return s.handleCommitOffset(request)
+	case protocol.RequestTypeGetOffset:
+		return s.handleGetOffset(request)
+	
 	default:
 		return s.createErrorResponse(request.RequestID, 
 			fmt.Errorf("unknown request type: %s", request.Type))
@@ -232,8 +250,46 @@ func (s *TCPServer) handleCreateTopic(request *protocol.Request) *protocol.Respo
 	})
 }
 
+// ==================== Consumer Group 请求处理 ====================
+
+// TODO: 你来实现这些Consumer Group请求处理方法
+// 提示: 每个方法都需要解析请求数据，调用GroupCoordinator的对应方法，然后返回响应
+
+func (s *TCPServer) handleJoinGroup(request *protocol.Request) *protocol.Response {
+	// TODO: 解析JoinGroupRequest，调用GroupCoordinator.HandleJoinGroup
+	panic("TODO: 实现handleJoinGroup")
+}
+
+func (s *TCPServer) handleLeaveGroup(request *protocol.Request) *protocol.Response {
+	// TODO: 解析LeaveGroupRequest，调用GroupCoordinator.HandleLeaveGroup
+	panic("TODO: 实现handleLeaveGroup")
+}
+
+func (s *TCPServer) handleSyncGroup(request *protocol.Request) *protocol.Response {
+	// TODO: 解析SyncGroupRequest，调用GroupCoordinator.HandleSyncGroup
+	panic("TODO: 实现handleSyncGroup")
+}
+
+func (s *TCPServer) handleHeartbeat(request *protocol.Request) *protocol.Response {
+	// TODO: 解析HeartbeatRequest，调用GroupCoordinator.HandleHeartbeat
+	panic("TODO: 实现handleHeartbeat")
+}
+
+func (s *TCPServer) handleCommitOffset(request *protocol.Request) *protocol.Response {
+	// TODO: 解析CommitOffsetRequest，调用GroupCoordinator.HandleCommitOffset
+	panic("TODO: 实现handleCommitOffset")
+}
+
+func (s *TCPServer) handleGetOffset(request *protocol.Request) *protocol.Response {
+	// TODO: 解析GetOffsetRequest，调用GroupCoordinator.HandleGetOffset
+	panic("TODO: 实现handleGetOffset")
+}
+
 // Stop 停止服务器
 func (s *TCPServer) Stop() error {
+	if s.groupCoordinator != nil {
+		s.groupCoordinator.Stop()
+	}
 	if s.listener != nil {
 		return s.listener.Close()
 	}

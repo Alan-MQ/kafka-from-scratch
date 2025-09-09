@@ -51,3 +51,56 @@ type SeekRequest struct {
 	PartitionId int32  `json:"partition_id"`
 	Offset      int64  `json:"offset"`
 }
+
+// ==================== Consumer Group 协议请求 ====================
+
+// JoinGroupRequest Consumer加入Group的请求
+type JoinGroupRequest struct {
+	GroupId        string   `json:"group_id"`
+	ConsumerId     string   `json:"consumer_id"`
+	ClientId       string   `json:"client_id"`
+	Topics         []string `json:"topics"`
+	SessionTimeout int32    `json:"session_timeout"` // 毫秒
+}
+
+// LeaveGroupRequest Consumer离开Group的请求  
+type LeaveGroupRequest struct {
+	GroupId    string `json:"group_id"`
+	ConsumerId string `json:"consumer_id"`
+}
+
+// SyncGroupRequest 获取分区分配的请求
+type SyncGroupRequest struct {
+	GroupId    string `json:"group_id"`
+	ConsumerId string `json:"consumer_id"`
+	Generation int32  `json:"generation"`
+}
+
+// HeartbeatRequest 心跳请求
+type HeartbeatRequest struct {
+	GroupId    string `json:"group_id"`
+	ConsumerId string `json:"consumer_id"`
+	Generation int32  `json:"generation"`
+}
+
+// CommitOffsetRequest 提交offset的请求
+type CommitOffsetRequest struct {
+	GroupId    string                   `json:"group_id"`
+	ConsumerId string                   `json:"consumer_id"`
+	Generation int32                    `json:"generation"`
+	Offsets    []TopicPartitionOffset  `json:"offsets"`
+}
+
+// GetOffsetRequest 获取offset的请求
+type GetOffsetRequest struct {
+	GroupId     string `json:"group_id"`
+	Topic       string `json:"topic"`
+	PartitionId int32  `json:"partition_id"`
+}
+
+// TopicPartitionOffset offset信息
+type TopicPartitionOffset struct {
+	Topic       string `json:"topic"`
+	PartitionId int32  `json:"partition_id"`
+	Offset      int64  `json:"offset"`
+}

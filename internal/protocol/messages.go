@@ -9,6 +9,14 @@ const (
 	RequestTypeConsume     RequestType = "CONSUME"
 	RequestTypeSubscribe   RequestType = "SUBSCRIBE"
 	RequestTypeSeek        RequestType = "SEEK"
+	
+	// Consumer Group 协议
+	RequestTypeJoinGroup    RequestType = "JOIN_GROUP"
+	RequestTypeLeaveGroup   RequestType = "LEAVE_GROUP"
+	RequestTypeSyncGroup    RequestType = "SYNC_GROUP" 
+	RequestTypeHeartbeat    RequestType = "HEARTBEAT"
+	RequestTypeCommitOffset RequestType = "COMMIT_OFFSET"
+	RequestTypeGetOffset    RequestType = "GET_OFFSET"
 )
 
 // Request 通用请求结构
