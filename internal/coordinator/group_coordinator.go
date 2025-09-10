@@ -137,7 +137,7 @@ func (gc *GroupCoordinator) HandleJoinGroup(req *protocol.JoinGroupRequest) (*pr
 	}
 
 	members := make([]string, 0, len(group.Members))
-	for memberId, _ := range group.Members {
+	for memberId := range group.Members {
 		members = append(members, memberId)
 	}
 	resp.Members = members
@@ -214,7 +214,7 @@ func (gc *GroupCoordinator) HandleSyncGroup(req *protocol.SyncGroupRequest) (*pr
 		return nil, fmt.Errorf("please rejoin the group")
 	}
 	if group.State != StateStable {
-		// return resp, nil
+		// return resp, nil 是不是简单返回错误让客户端重试就行? 这里因为
 		return nil, fmt.Errorf("rebalanceing please wait")
 	}
 	resp.Assignment = group.Assignment[req.ConsumerId]
@@ -243,7 +243,27 @@ func (gc *GroupCoordinator) HandleHeartbeat(req *protocol.HeartbeatRequest) (*pr
 		req.GroupId, req.ConsumerId, req.Generation)
 
 	// TODO: 实现具体逻辑
-	panic("TODO: 实现Heartbeat逻辑")
+	if _, exists := gc.groups[req.GroupId]; !exists {
+		// 如果组都还不存在 应该joinGroup
+		return nil, fmt.Errorf("please rejoin the group")
+	}
+	group := gc.groups[req.GroupId]
+	if req.Generation != group.Generation {
+		// 我不理解  这个协议这里为什么要通知Consumer 进行rebalance? consumer 怎么进行rebalance , rebalance 不应该是 coordinator 把 这个group 的这个topic 的这些 partition rebalance 给所有这个组的consumer吗?
+		// consumer 需要做什么? 他们等待rebalance 结果就行吧,
+		// return
+		return nil, fmt.Errorf("please rejoin the group")
+	}
+
+	member, exists := group.Members[req.ConsumerId]
+	if !exists {
+		return nil, fmt.Errorf("consumer not found")
+	}
+	member.LastHeartbeat = time.Now()
+	return &protocol.HeartbeatResponse{
+		RebalanceRequired: false,
+	}, nil
+
 }
 
 // ==================== 🤔 考察题4: Offset管理权限控制 ====================
@@ -255,6 +275,9 @@ func (gc *GroupCoordinator) HandleHeartbeat(req *protocol.HeartbeatRequest) (*pr
 //
 // 进阶思考: 如果允许任意Consumer提交任意分区的offset，会有什么安全问题？
 
+// 这里我觉得好乱, 我也查了一些资料但是 感觉理解还是不是很到位 我梳理一下我学到的东西
+// 1. 真正的kafka 中 broker 是检查 generation 和 consumer 在不在这个consumer group里的, 这两点, 也就是说只要是这个consumer group里的 是当前这个 generation的就可以提交
+//
 // HandleCommitOffset 处理offset提交请求
 func (gc *GroupCoordinator) HandleCommitOffset(req *protocol.CommitOffsetRequest) (*protocol.CommitOffsetResponse, error) {
 	gc.mutex.Lock()
